@@ -9,10 +9,14 @@
 				<Address>
 					<AddressLine>Priamou 134</AddressLine>
 					<PostalCode>13122</PostalCode>
+					<OrderNumber>1</OrderNumber>
+					<OrderNumber>2</OrderNumber>
 				</Address>
 				<Address>
 					<AddressLine>Axilleos 80</AddressLine>
 					<PostalCode>13123</PostalCode>
+					<OrderNumber>1</OrderNumber>
+					<OrderNumber>2</OrderNumber>
 				</Address>
 			</Addresses>
 			<Name>Thodoris</Name>

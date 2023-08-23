@@ -62,17 +62,26 @@ namespace EDIConverter
                     // already visited mapping
                     if (IsCollectionAlreadyVisited(collectionMappings, currentMapping))
                     {
-                        // add created collection object
-                        //addObjectToCollection(parentObject, collectionObject)
                         // update index and check
-                        //collectionIndex[currentMapping]++;
-                        // revisit childs if index < count
+                        CollectionInfo collectionInfo = collectionMappings.Peek();
+                        collectionInfo.index++;
+                        if (collectionInfo.index >= collectionInfo.count)
+                        {
+                            mappings.Pop();
+                            collectionMappings.Pop();
+                            continue;
+                        }
+                        else
+                        {
+                            parentObject = collectionInfo.parentObject;
+                        }
                     }
                     // first visit to mapping
                     else
                     {
                         CollectionInfo collectionInfo = new CollectionInfo()
                         {
+                            parentObject = parentObject,
                             mapping = currentMapping,
                             collection = InitializeProperty(parentObject, currentMapping["collectionProperty"].ToString()),
                             count = FetchCollectionCount(currentMapping, xmlInput)
@@ -94,7 +103,7 @@ namespace EDIConverter
                     // get the mapped value from input
                     string value = GetPropertyValue(currentMapping["value"].ToString(), xmlInput);
                     // set the model property
-                    if(collectionMappings.Count > 0)
+                    if (IsCollectionTypeMapping(currentMapping))
                     {
                         SetListPropertyValue(parentObject, currentMapping["collectionProperty"].ToString(), value);
                     }
@@ -107,7 +116,7 @@ namespace EDIConverter
                 else
                 {
                     // initialize the property, and set it as the parent object
-                    if (collectionMappings.Count > 0)
+                    if (IsCollectionTypeMapping(currentMapping))
                     {
                         parentObject = InitializeListProperty(parentObject, currentMapping["collectionProperty"].ToString(), currentMapping["class"].ToString());
                     }

@@ -36,6 +36,12 @@
               "class": "String",
               "property": "PostalCode",
               "value": "Order.Header.Supplier.Addresses.Address.PostalCode"
+            },
+            {
+              "class": "String",
+              "collectionType": "List",
+              "collectionProperty": "OrderNumbers",
+              "value": "Order.Header.Supplier.Addresses.Address.OrderNumber"
             }
           ]
         }

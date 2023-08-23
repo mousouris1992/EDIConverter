@@ -10,9 +10,6 @@ namespace EDIConverter
         public  string IssueDate { get; set; }
         public  string DocumentType { get; set; }
         public  Supplier Supplier { get; set; }
-
-        public List<String> OrderNumbers { get; set; }
-            
     }
 
     public class Address
@@ -20,7 +17,9 @@ namespace EDIConverter
         public string PostalCode { get; set; }
         public string AddressLine { get; set; }
 
-		}
+        public List<String> OrderNumbers { get; set; }
+
+	}
 
 	public class Supplier
 	{

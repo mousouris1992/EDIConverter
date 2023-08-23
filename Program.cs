@@ -14,8 +14,6 @@ namespace EDIConverter
             string directoryPath = "D:\\Giwrgos\\programming\\c#\\EDIConverter\\resources\\";
             string xmlFileName = "input.xml";
             string jsonFileName = "config.json"; 
-
-
             string xmlInput = ReadFile(Path.Combine(directoryPath,xmlFileName));
             string configFile = ReadFile(Path.Combine(directoryPath, jsonFileName));
 

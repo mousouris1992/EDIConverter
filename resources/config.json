@@ -1,0 +1,42 @@
+{
+  "fileType": "xml",
+  "mappings": [
+    {
+      "type": "String",
+      "property": "ReferenceNumber",
+      "value": "Order.Header.ReferenceNumber"
+    },
+    {
+      "type": "Supplier",
+      "property": "Supplier",
+      "mappings": [
+        {
+          "type": "String",
+          "property": "Name",
+          "value": "Order.Header.Supplier.Name"
+        },
+        {
+          "type": "String",
+          "property": "Vat",
+          "value": "Order.Header.Supplier.Vat"
+        },
+        {
+          "type": "Address",
+          "property": "Address",
+          "mappings": [
+            {
+              "type": "String",
+              "property": "AddressLine",
+              "value": "Order.Header.Supplier.Addresses.Address.AddressLine"
+            },
+            {
+              "type": "String",
+              "property": "PostalCode",
+              "value": "Order.Header.Supplier.Addresses.Address.PostalCode"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

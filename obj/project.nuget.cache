@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "h0/xq6keUtSXfsO1icuMNHhy65cRhSRIKiiiaghI4/HVMlvf2+ZAswSYk+pVmiiXRRkg8g+JULtxVTbxKHRKzw==",
+  "success": true,
+  "projectFilePath": "D:\\Giwrgos\\programming\\c#\\EDIConverter\\EDIConverter.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\giorgos\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

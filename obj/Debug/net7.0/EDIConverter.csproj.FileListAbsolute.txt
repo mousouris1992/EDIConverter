@@ -1,0 +1,17 @@
+D:\Giwrgos\programming\c#\EDIConverter\bin\Debug\net7.0\EDIConverter.exe
+D:\Giwrgos\programming\c#\EDIConverter\bin\Debug\net7.0\EDIConverter.deps.json
+D:\Giwrgos\programming\c#\EDIConverter\bin\Debug\net7.0\EDIConverter.runtimeconfig.json
+D:\Giwrgos\programming\c#\EDIConverter\bin\Debug\net7.0\EDIConverter.dll
+D:\Giwrgos\programming\c#\EDIConverter\bin\Debug\net7.0\EDIConverter.pdb
+D:\Giwrgos\programming\c#\EDIConverter\bin\Debug\net7.0\Newtonsoft.Json.dll
+D:\Giwrgos\programming\c#\EDIConverter\obj\Debug\net7.0\EDIConverter.csproj.AssemblyReference.cache
+D:\Giwrgos\programming\c#\EDIConverter\obj\Debug\net7.0\EDIConverter.GeneratedMSBuildEditorConfig.editorconfig
+D:\Giwrgos\programming\c#\EDIConverter\obj\Debug\net7.0\EDIConverter.AssemblyInfoInputs.cache
+D:\Giwrgos\programming\c#\EDIConverter\obj\Debug\net7.0\EDIConverter.AssemblyInfo.cs
+D:\Giwrgos\programming\c#\EDIConverter\obj\Debug\net7.0\EDIConverter.csproj.CoreCompileInputs.cache
+D:\Giwrgos\programming\c#\EDIConverter\obj\Debug\net7.0\EDIConverter.csproj.CopyComplete
+D:\Giwrgos\programming\c#\EDIConverter\obj\Debug\net7.0\EDIConverter.dll
+D:\Giwrgos\programming\c#\EDIConverter\obj\Debug\net7.0\refint\EDIConverter.dll
+D:\Giwrgos\programming\c#\EDIConverter\obj\Debug\net7.0\EDIConverter.pdb
+D:\Giwrgos\programming\c#\EDIConverter\obj\Debug\net7.0\EDIConverter.genruntimeconfig.cache
+D:\Giwrgos\programming\c#\EDIConverter\obj\Debug\net7.0\ref\EDIConverter.dll

@@ -10,10 +10,9 @@ namespace EDIConverter
         public  string IssueDate { get; set; }
         public  string DocumentType { get; set; }
         public  Supplier Supplier { get; set; }
-       
 
-
-
+        public List<String> OrderNumbers { get; set; }
+            
     }
 
     public class Address

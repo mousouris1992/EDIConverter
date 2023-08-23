@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Order>
+	<Header>
+		<ReferenceNumber>4500251763</ReferenceNumber>
+		<IssueDate>20230724</IssueDate>
+		<DocumentType>Order</DocumentType>
+		<Supplier>
+			<Addresses>
+				<Address>
+					<AddressLine>Priamou 134</AddressLine>
+					<PostalCode>13122</PostalCode>
+				</Address>
+				<Address>
+					<AddressLine>Axilleos 80</AddressLine>
+					<PostalCode>13123</PostalCode>
+				</Address>
+			</Addresses>
+			<Name>Thodoris</Name>
+			<Vat>123456789</Vat>
+			<SupplierCode>0000021879</SupplierCode>
+		</Supplier>
+	</Header>
+</Order>
+

@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using System.Data;
 using System.Reflection;
 using System.Xml.Linq;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -10,8 +11,19 @@ namespace EDIConverter
     {
         static void Main(string[] args)
         {
-            string xmlInput = "";//ReadAllText("input.txt"); //"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<Order>\r\n\t<Header>\r\n\t\t<ReferenceNumber>4500251763</ReferenceNumber>\r\n\t\t<IssueDate>20230724</IssueDate>\r\n\t\t<DocumentType>Order</DocumentType>\r\n\t\t<Supplier>\r\n\t\t\t<Addresses>\r\n\t\t\t\t<Address>\r\n\t\t\t\t\t<AddressLine>Priamou 134</AddressLine>\r\n\t\t\t\t\t<PostalCode>13122</PostalCode>\r\n\t\t\t\t</Address>\r\n\t\t\t\t<Address>\r\n\t\t\t\t\t<AddressLine>Axilleos 80</AddressLine>\r\n\t\t\t\t\t<PostalCode>13123</PostalCode>\r\n\t\t\t\t</Address>\r\n\t\t\t</Addresses>\r\n\t\t\t<Name>Thodoris</Name>\r\n\t\t\t<Vat>123456789</Vat>\r\n\t\t\t<SupplierCode>0000021879</SupplierCode>\r\n\t\t</Supplier>\r\n\t</Header>\r\n</Order>\r\n\r\n";
-            string configFile = "";//ReadAllText("config.txt"); //"{\r\n  \"fileType\": \"xml\",\r\n  \"mappings\": [\r\n    {\r\n      \"type\": \"String\",\r\n      \"property\": \"ReferenceNumber\",\r\n      \"value\": \"Order.Header.ReferenceNumber\"\r\n    },\r\n    {\r\n      \"type\": \"Supplier\",\r\n      \"property\": \"Supplier\",\r\n      \"mappings\": [\r\n        {\r\n          \"type\": \"String\",\r\n          \"property\": \"Name\",\r\n          \"value\": \"Order.Header.Supplier.Name\"\r\n        },\r\n        {\r\n          \"type\": \"String\",\r\n          \"property\": \"Vat\",\r\n          \"value\": \"Order.Header.Supplier.Vat\"\r\n        },\r\n        {\r\n          \"type\": \"Address\",\r\n          \"property\": \"Address\",\r\n          \"mappings\": [\r\n            {\r\n              \"type\": \"String\",\r\n              \"property\": \"AddressLine\",\r\n              \"value\": \"Order.Header.Supplier.Addresses.Address.AddressLine\"\r\n            },\r\n            {\r\n              \"type\": \"String\",\r\n              \"property\": \"PostalCode\",\r\n              \"value\": \"Order.Header.Supplier.Addresses.Address.PostalCode\"\r\n            }\r\n          ]\r\n        }\r\n      ]\r\n    }\r\n  ]\r\n}";
+            string directoryPath = "D:\\Giwrgos\\programming\\c#\\EDIConverter\\resources\\";
+            string xmlFileName = "input.xml";
+            string jsonFileName = "config.json"; 
+
+
+            string xmlInput = ReadFile(Path.Combine(directoryPath,xmlFileName));
+            string configFile = ReadFile(Path.Combine(directoryPath, jsonFileName));
+
+            if (xmlInput == null || configFile == null)
+            {
+                Console.WriteLine("cannot read this file");
+            }
+
 
             // parse configuration file
             JObject config = JObject.Parse(configFile);
@@ -30,16 +42,13 @@ namespace EDIConverter
 
             // initialize mappings stack
             Stack<JToken> mappings = new Stack<JToken>(mappingsList);
-            Stack<JToken> collectionMappings = new Stack<JToken>();
-            Dictionary<JToken, int> collectionCount = new Dictionary<JToken, int>();
-            Dictionary<JToken, int> collectionIndex = new Dictionary<JToken, int>();
+            Stack<CollectionInfo> collectionMappings = new Stack<CollectionInfo>();
 
             // set first child as current
             JToken currentMapping = null;
 
             // stored objects
             object parentObject = model;
-            object collectionObject = null;
 
             // traverse the mappings
             while (mappings.Count > 0)
@@ -51,22 +60,26 @@ namespace EDIConverter
                 if (IsCollectionTypeMapping(currentMapping))
                 {
                     // already visited mapping
-                    if (collectionMappings.Contains(currentMapping))
+                    if (IsCollectionAlreadyVisited(collectionMappings, currentMapping))
                     {
                         // add created collection object
                         //addObjectToCollection(parentObject, collectionObject)
                         // update index and check
-                        collectionIndex[currentMapping]++;
+                        //collectionIndex[currentMapping]++;
                         // revisit childs if index < count
                     }
                     // first visit to mapping
                     else
                     {
+                        CollectionInfo collectionInfo = new CollectionInfo()
+                        {
+                            mapping = currentMapping,
+                            collection = InitializeProperty(parentObject, currentMapping["collectionProperty"].ToString()),
+                            count = FetchCollectionCount(currentMapping, xmlInput)
+                        };
+
                         // push current mapping to collection mappings
-                        collectionMappings.Push(currentMapping);
-                        // get collection count
-                        collectionCount[currentMapping] = FetchCollectionCount(currentMapping, xmlInput);
-                        collectionIndex[currentMapping] = 0;
+                        collectionMappings.Push(collectionInfo);
                     }
                 }
                 else
@@ -81,13 +94,27 @@ namespace EDIConverter
                     // get the mapped value from input
                     string value = GetPropertyValue(currentMapping["value"].ToString(), xmlInput);
                     // set the model property
-                    SetPropertyValue(parentObject, currentMapping["property"].ToString(), value);
+                    if(collectionMappings.Count > 0)
+                    {
+                        SetListPropertyValue(parentObject, currentMapping["collectionProperty"].ToString(), value);
+                    }
+                    else
+                    {
+                        SetPropertyValue(parentObject, currentMapping["property"].ToString(), value);
+                    }
                 }
                 // complex mapping
                 else
                 {
                     // initialize the property, and set it as the parent object
-                    parentObject = InitializeProperty(parentObject, currentMapping["property"].ToString());
+                    if (collectionMappings.Count > 0)
+                    {
+                        parentObject = InitializeListProperty(parentObject, currentMapping["collectionProperty"].ToString(), currentMapping["class"].ToString());
+                    }
+                    else
+                    {
+                        parentObject = InitializeProperty(parentObject, currentMapping["property"].ToString());
+                    }
 
                     // include child mappings
                     List<JToken> childMappings = currentMapping["mappings"].ToList();
@@ -101,9 +128,14 @@ namespace EDIConverter
             return model;
         }
 
+        private static bool IsCollectionAlreadyVisited(Stack<CollectionInfo> collectionMappings, JToken currentMapping)
+        {
+            return collectionMappings.FirstOrDefault(c => c.mapping == currentMapping) != null;
+        }
+
         static Boolean IsSimpleMapping(JToken mapping)
         {
-            return mapping["value"] != null;
+            return mapping["mappings"] == null;
         }
 
         static Boolean IsCollectionTypeMapping(JToken mapping)
@@ -116,9 +148,26 @@ namespace EDIConverter
             return collectionType.ToString() == "List";
         }
 
-        static int FetchCollectionCount(JToken mapping, object xmlInput)
+        static int FetchCollectionCount(JToken mapping, string xmlInput)
         {
-            return 0;
+            var path = mapping["value"].ToString();
+            var list = path.Split('.').ToList();
+
+            XDocument doc = XDocument.Parse(xmlInput);
+            XElement parentCollection = doc.Descendants(list[list.Count-2])?.FirstOrDefault();
+
+            if (parentCollection != null)
+            {
+                var childElemets = parentCollection.Elements(list[list.Count - 1]);
+
+                return childElemets.Count();
+            }
+            else
+            {
+                return 0;
+            }
+           
+            
         }
 
         static string GetPropertyValue(string path, string content)
@@ -151,6 +200,12 @@ namespace EDIConverter
             PropertyInfo propertyInfo = parentObject.GetType().GetProperty(property);
             propertyInfo.SetValue(parentObject, Convert.ChangeType(value, propertyInfo.PropertyType));
         }
+        static void SetListPropertyValue(object parentObject, string collectionProperty, object value)
+        {
+            PropertyInfo propertyInfo = parentObject.GetType().GetProperty(collectionProperty);
+            object collection = propertyInfo.GetValue(parentObject, null);
+            collection.GetType().GetMethod("Add").Invoke(collection, new[] { value });
+        }
 
         static object InitializeProperty(object parentObject, string property)
         {
@@ -162,6 +217,46 @@ namespace EDIConverter
                 propertyInfo.SetValue(parentObject, propertyValue);
             }
             return propertyValue;
+        }
+
+        static object InitializeListProperty(object parentObject, string collectionProperty, string className)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var type = assembly.GetTypes()
+                .First(t => t.Name == className);
+            object instance = Activator.CreateInstance(type);
+            SetListPropertyValue(parentObject, collectionProperty, instance);
+            return instance;
+        }
+
+        private static object CreateInstance(string className)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var type = assembly.GetTypes()
+                .First(t => t.Name == className);
+            return Activator.CreateInstance(type);
+        }
+
+        static string ReadFile(string path)
+        {
+            try
+            {
+                if (File.Exists(path))
+                {
+                    return File.ReadAllText(path);
+                }
+                else
+                {
+                    return null;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error reading file{ex.Message}");
+                return null;
+            }
+        
         }
 
     }

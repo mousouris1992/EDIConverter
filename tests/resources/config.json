@@ -1,7 +1,6 @@
 {
-  "fileclass": "xml",
-  "value": "Order.Header.Supplier.Addresses.Address",
-  "mappings": [
+  "fileType": "xml",
+  "childs": [
     {
       "class": "String",
       "property": "ReferenceNumber",
@@ -10,7 +9,7 @@
     {
       "class": "Supplier",
       "property": "Supplier",
-      "mappings": [
+      "childs": [
         {
           "class": "String",
           "property": "Name",
@@ -22,11 +21,11 @@
           "value": "Order.Header.Supplier.Vat"
         },
         {
-          "class": "Address",
           "collectionType": "List",
-          "collectionProperty": "Addresses",
+          "class": "Address",
+          "property": "Addresses",
           "value": "Order.Header.Supplier.Addresses.Address",
-          "mappings": [
+          "childs": [
             {
               "class": "String",
               "property": "AddressLine",
@@ -38,9 +37,9 @@
               "value": "Order.Header.Supplier.Addresses.Address.PostalCode"
             },
             {
-              "class": "String",
               "collectionType": "List",
-              "collectionProperty": "OrderNumbers",
+              "class": "String",
+              "property": "OrderNumbers",
               "value": "Order.Header.Supplier.Addresses.Address.OrderNumber"
             }
           ]

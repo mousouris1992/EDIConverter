@@ -1,49 +1,46 @@
 {
   "fileType": "xml",
-  "value": "Order.Header.Supplier.Addresses.Address",
-  "mappings": [
+  "childs": [
     {
-      "type": "String",
+      "class": "String",
       "property": "ReferenceNumber",
       "value": "Order.Header.ReferenceNumber"
     },
     {
-      "type": "String",
-      "property": "ReferenceNumber",
-      "colllectionType": "List",
-      "colllectionProperty": "Orders",
-      "value": "Order.Header.ReferenceNumber"
-    },
-    {
-      "type": "Supplier",
+      "class": "Supplier",
       "property": "Supplier",
-      "mappings": [
+      "childs": [
         {
-          "type": "String",
+          "class": "String",
           "property": "Name",
           "value": "Order.Header.Supplier.Name"
         },
         {
-          "type": "String",
+          "class": "String",
           "property": "Vat",
           "value": "Order.Header.Supplier.Vat"
         },
         {
-          "type": "Address",
-          "property": "Address",
-          "colllectionType": "List",
-          "colllectionProperty": "Addresses",
+          "collectionType": "List",
+          "class": "Address",
+          "property": "Addresses",
           "value": "Order.Header.Supplier.Addresses.Address",
-          "mappings": [
+          "childs": [
             {
-              "type": "String",
+              "class": "String",
               "property": "AddressLine",
               "value": "Order.Header.Supplier.Addresses.Address.AddressLine"
             },
             {
-              "type": "String",
+              "class": "String",
               "property": "PostalCode",
               "value": "Order.Header.Supplier.Addresses.Address.PostalCode"
+            },
+            {
+              "collectionType": "List",
+              "class": "String",
+              "property": "OrderNumbers",
+              "value": "Order.Header.Supplier.Addresses.Address.OrderNumber"
             }
           ]
         }

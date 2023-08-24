@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "h0/xq6keUtSXfsO1icuMNHhy65cRhSRIKiiiaghI4/HVMlvf2+ZAswSYk+pVmiiXRRkg8g+JULtxVTbxKHRKzw==",
+  "dgSpecHash": "7OIgD4f3YOD/0gLo8x7UYAxtZ28D5/CUfiUENH427oGeZRTw0TQuGMcLPHs9UmMtUTytZtBTH/Myd13NYTrQrg==",
   "success": true,
   "projectFilePath": "D:\\Giwrgos\\programming\\c#\\EDIConverter\\EDIConverter.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\giorgos\\.nuget\\packages\\mstest.testframework\\2.2.10\\mstest.testframework.2.2.10.nupkg.sha512",
     "C:\\Users\\giorgos\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512"
   ],
   "logs": []

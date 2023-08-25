@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -26,30 +27,8 @@ namespace EDIConverter
             Model model = new Model();
             JObject config = JObject.Parse(configFile);
             InitializeState(config, inputContent, model);
-            traverseNodes();
+            TraverseNodes();
             return model;
-        }
-
-        private void traverseNodes()
-        {
-            while (childs.Count > 0)
-            {
-                // peek current node
-                currentNode = childs.Peek();
-                // handle collection node
-                if (IsCollectionNode())
-                {
-                    bool skip = HandleCollectionNode();
-                    if (skip)
-                        continue;
-                }
-                SetNodeProperty();
-                // pop current node
-                if (!IsCollectionNode())
-                    childs.Pop();
-                // push child nodes
-                PushChildNodes();
-            }
         }
 
         private void InitializeState(JObject config, string inputContent, Model model)
@@ -69,6 +48,24 @@ namespace EDIConverter
             parentObject = model;
         }
 
+        private void TraverseNodes()
+        {
+            while (childs.Count > 0)
+            {
+                currentNode = childs.Peek();
+                if (IsCollectionNode())
+                {
+                    bool skip = HandleCollectionNode();
+                    if (skip)
+                        continue;
+                }
+                HandleNodeProperty();
+                if (!IsCollectionNode())
+                    childs.Pop();
+                PushChildNodes();
+            }
+        }
+      
         private void PushChildNodes()
         {
             List<JToken> currentNodeChilds = currentNode["childs"] != null ? currentNode["childs"].ToList() : new List<JToken>();
@@ -95,45 +92,34 @@ namespace EDIConverter
             }
             else
             {
-                // push new collection to collections stack
+                object collection = InitializeCollection();
+                SetProperty(collection);
                 collections.Push(new CollectionInfo()
                 {
                     parentObject = parentObject,
                     node = currentNode,
-                    collection = InitializeProperty(),
+                    collection = collection,
                     count = FetchCollectionCount()
                 });
             }
             return skip;
         }
 
-        private void SetNodeProperty()
+        //TODO refactor
+        private void HandleNodeProperty()
         {
+            object property;
             if (IsSimpleNode())
-                SetSimpleNodeProperty();
+                property = FetchProperty();
             else
-                SetComplexNodeProperty();
-        }
-
-        private void SetSimpleNodeProperty()
-        {
-            string value = GetPropertyValue();
+                property = InitializeProperty();
             if (IsCollectionNode())
-                SetListPropertyValue(value);
+                SetCollectionItem(property);
             else
-                SetPropertyValue(value);
+                SetProperty(property);
+            if (!IsSimpleNode())
+                parentObject = property;
         }
-
-        private void SetComplexNodeProperty()
-        {
-            // initialize the property, and set it as the parent object
-            // TODO: merge both logics into one, maybe need to set class for all properties in config
-            if (IsCollectionNode())
-                parentObject = InitializeListProperty();
-            else
-                parentObject = InitializeProperty();
-        }
-
         private bool IsCollectionNodeVisited()
         {
             return collections.FirstOrDefault(c => c.node == currentNode) != null;
@@ -162,7 +148,7 @@ namespace EDIConverter
             return 0;
         }
 
-        private string GetPropertyValue()
+        private string FetchProperty()
         {
             string path = currentNode["value"].ToString();
             XDocument doc = XDocument.Parse(inputContent);
@@ -182,43 +168,39 @@ namespace EDIConverter
             return foundElement?.Value;
         }
 
-        private void SetPropertyValue(object value)
+        private object InitializeCollection()
+        {
+            Type collectionType = FindType(currentNode["collectionType"].ToString());
+            Type[] typeArgs = { FindType(currentNode["class"].ToString()) };
+            return Activator.CreateInstance(collectionType.MakeGenericType(typeArgs));
+        }
+
+        private object InitializeProperty()
+        {
+            string className = currentNode["class"].ToString();
+            return Activator.CreateInstance(FindType(className));
+        }
+
+        private Type FindType(string clazz)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            Type type = assembly.GetTypes().FirstOrDefault(t => t.Name == clazz);
+            return type != null ? type : Type.GetType(SupportedSystemType.Of(clazz));
+        }
+
+        private void SetProperty(object value)
         {
             string property = currentNode["property"].ToString();
             PropertyInfo propertyInfo = parentObject.GetType().GetProperty(property);
             propertyInfo.SetValue(parentObject, Convert.ChangeType(value, propertyInfo.PropertyType));
         }
 
-        private void SetListPropertyValue(object value)
+        private void SetCollectionItem(object value)
         {
             string property = currentNode["property"].ToString();
             PropertyInfo propertyInfo = parentObject.GetType().GetProperty(property);
             object collection = propertyInfo.GetValue(parentObject, null);
             collection.GetType().GetMethod("Add").Invoke(collection, new[] { value });
-        }
-
-        private object InitializeProperty()
-        {
-            string property = currentNode["property"].ToString();
-            PropertyInfo propertyInfo = parentObject.GetType().GetProperty(property);
-            var propertyValue = propertyInfo.GetValue(parentObject);
-            if (propertyValue == null)
-            {
-                propertyValue = Activator.CreateInstance(propertyInfo.PropertyType);
-                propertyInfo.SetValue(parentObject, propertyValue);
-            }
-            return propertyValue;
-        }
-
-        private object InitializeListProperty()
-        {
-            string property = currentNode["property"].ToString();
-            string className = currentNode["class"].ToString();
-            var assembly = Assembly.GetExecutingAssembly();
-            var type = assembly.GetTypes().First(t => t.Name == className);
-            object instance = Activator.CreateInstance(type);
-            SetListPropertyValue(instance);
-            return instance;
         }
     }
 }

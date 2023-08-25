@@ -1,16 +1,15 @@
-﻿using EDIConverter.src;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EDIConverter
+namespace EDIConverter.parser
 {
     class FileParserFactory
     {
         private const string XML = "xml";
-        private FileParserFactory() { } 
+        private FileParserFactory() { }
         public static FileParser Create(string fileType)
         {
             switch (fileType)

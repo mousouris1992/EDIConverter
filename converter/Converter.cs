@@ -1,4 +1,6 @@
-﻿using EDIConverter.src;
+﻿using EDIConverter.model;
+using EDIConverter.parser;
+using EDIConverter.util;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -9,12 +11,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace EDIConverter
+namespace EDIConverter.converter
 {
     public class Converter
     {
         private Stack<JToken> Childs = new Stack<JToken>();
-        
+
         private Stack<CollectionInfo> Collections = new Stack<CollectionInfo>();
 
         private HashSet<JToken> VisitedChilds = new HashSet<JToken>();
@@ -26,7 +28,7 @@ namespace EDIConverter
         private FileParser? FileParser;
 
         // converts to Model given a configuration and an input file
-        public Model ToModel(String configContent, String inputContent)
+        public Model ToModel(string configContent, string inputContent)
         {
             Model model = new Model();
             InitializeState(configContent, inputContent, model);
@@ -59,6 +61,11 @@ namespace EDIConverter
             while (Childs.Count > 0)
             {
                 CurrentNode = Childs.Peek();
+                if (ShouldSkipNode())
+                {
+                    Childs.Pop();
+                    continue;
+                }
                 if (IsCollectionNode())
                 {
                     bool skip = HandleCollectionInfo();
@@ -72,7 +79,7 @@ namespace EDIConverter
                 VisitedChilds.Add(CurrentNode);
             }
         }
-      
+
         // pushes current node's childs into the childs stack
         private void PushChildNodes()
         {
@@ -143,6 +150,11 @@ namespace EDIConverter
         private bool IsSimpleNode()
         {
             return CurrentNode["childs"] == null;
+        }
+
+        private bool ShouldSkipNode()
+        {
+            return !FileParser.HasProperty(CurrentNode["value"].ToString());
         }
 
         // decides if current node is a collection node

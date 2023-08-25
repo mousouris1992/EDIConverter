@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EDIConverter
+namespace EDIConverter.util
 {
     public class ReflectionHandler
     {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EDIConverter.src
+namespace EDIConverter.parser
 {
     // defines basic operations over an input file.
     public interface FileParser
@@ -20,5 +20,8 @@ namespace EDIConverter.src
 
         // fetches collection's count
         int FetchCollectionCount(string property);
+
+        // decides if given property exists
+        bool HasProperty(string property);
     }
 }

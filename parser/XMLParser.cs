@@ -1,5 +1,4 @@
-﻿using EDIConverter.src;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -7,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace EDIConverter
+namespace EDIConverter.parser
 {
     // XML implementation of FileParser
     public class XMLParser : FileParser
@@ -16,26 +15,13 @@ namespace EDIConverter
 
         public void Parse(string content)
         {
-            this.doc = XDocument.Parse(content);
+            doc = XDocument.Parse(content);
         }
 
         public string FetchValue(string property)
         {
             ValidateParsedDocument();
-            Stack<string> pathElements = new Stack<string>(property.Split('.').Reverse());
-            XElement foundElement = null;
-            int depth = 0;
-            int maxDepth = pathElements.Count;
-            while (depth < maxDepth)
-            {
-                string currentPathElement = pathElements.Pop();
-                IEnumerable<XElement> children = doc.Descendants(currentPathElement);
-                foundElement = children.FirstOrDefault();
-                if (foundElement != null && pathElements.Count > 0)
-                    doc = new XDocument(foundElement);
-                depth++;
-            }
-            return foundElement?.Value;
+            return FetchElement(property)?.Value;
         }
 
         public string FetchValue(string property, int index)
@@ -56,6 +42,31 @@ namespace EDIConverter
             }
             return 0;
         }
+
+        public bool HasProperty(string property)
+        {
+            ValidateParsedDocument();
+            return FetchElement(property) != null;
+        }
+
+        private XElement FetchElement(string property)
+        {
+            Stack<string> pathElements = new Stack<string>(property.Split('.').Reverse());
+            XElement foundElement = null;
+            int depth = 0;
+            int maxDepth = pathElements.Count;
+            while (depth < maxDepth)
+            {
+                string currentPathElement = pathElements.Pop();
+                IEnumerable<XElement> children = doc.Descendants(currentPathElement);
+                foundElement = children.FirstOrDefault();
+                if (foundElement != null && pathElements.Count > 0)
+                    doc = new XDocument(foundElement);
+                depth++;
+            }
+            return foundElement;
+        }
+
         private void ValidateParsedDocument()
         {
             if (doc == null)

@@ -15,15 +15,13 @@ namespace EDIConverter.converter
 {
     public class Converter
     {
-        private Stack<JToken> Childs = new Stack<JToken>();
+        private Stack<ConfigNode> Childs = new Stack<ConfigNode>();
 
-        private Stack<CollectionInfo> Collections = new Stack<CollectionInfo>();
+        private HashSet<ConfigNode> VisitedChilds = new HashSet<ConfigNode>();
 
-        private HashSet<JToken> VisitedChilds = new HashSet<JToken>();
+        private ConfigNode? CurrentNode;
 
-        private JToken? CurrentNode;
-
-        private object? ParentObject;
+        private object? CurrentObj;
 
         private FileParser? FileParser;
 
@@ -44,12 +42,13 @@ namespace EDIConverter.converter
             List<JToken> childsList = ((JArray)config["childs"]).ToList();
             childsList.Reverse();
             // initialize stacks
-            Childs = new Stack<JToken>(childsList);
-            Collections.Clear();
+            Childs.Clear();
+            foreach(JToken child in childsList)
+                Childs.Push(new ConfigNode(child, null, model));
             VisitedChilds.Clear();
             // initialize objects 
             CurrentNode = null;
-            ParentObject = model;
+            CurrentObj = model;
             // initialize parser
             FileParser = FileParserFactory.Create(config["fileType"].ToString());
             FileParser.Parse(inputContent);
@@ -66,27 +65,26 @@ namespace EDIConverter.converter
                     Childs.Pop();
                     continue;
                 }
-                if (IsCollectionNode())
+                if (CurrentNode.IsCollection())
                 {
                     bool skip = HandleCollectionInfo();
                     if (skip)
                         continue;
                 }
                 HandleNode();
-                if (!IsCollectionNode())
+                if (!CurrentNode.IsCollection())
                     Childs.Pop();
                 PushChildNodes();
                 VisitedChilds.Add(CurrentNode);
             }
         }
 
-        // pushes current node's childs into the childs stack
         private void PushChildNodes()
         {
-            List<JToken> currentNodeChilds = CurrentNode["childs"] != null ? CurrentNode["childs"].ToList() : new List<JToken>();
-            currentNodeChilds.Reverse();
-            foreach (JToken child in currentNodeChilds)
-                Childs.Push(child);
+            foreach (ConfigNode node in CurrentNode.childs){
+                node.parentObj = CurrentObj;
+                Childs.Push(node);
+            }
         }
 
         // handles current node as a collection node.
@@ -95,28 +93,20 @@ namespace EDIConverter.converter
             bool skip = false;
             if (IsNodeVisited())
             {
-                CollectionInfo collectionInfo = Collections.Peek();
-                collectionInfo.index++;
-                if (collectionInfo.index >= collectionInfo.count)
+                CurrentNode.index++;
+                if (CurrentNode.index >= CurrentNode.count)
                 {
                     Childs.Pop();
-                    Collections.Pop();
                     VisitedChilds.Remove(CurrentNode);
                     skip = true;
                 }
-                else
-                    ParentObject = collectionInfo.parentObject;
             }
             else
             {
+                CurrentNode.index = 0;
+                CurrentNode.count = FetchCollectionCount();
                 object collection = CreateCollectionInstance();
                 SetModelCollection(collection);
-                Collections.Push(new CollectionInfo()
-                {
-                    parentObject = ParentObject,
-                    collection = collection,
-                    count = FetchCollectionCount()
-                });
             }
             return skip;
         }
@@ -128,16 +118,15 @@ namespace EDIConverter.converter
         private void HandleNode()
         {
             object obj;
-            if (IsSimpleNode())
+            if (CurrentNode.IsPrimitiveType())
                 obj = FetchPropertyValue();
             else
                 obj = CreatePropertyInstance();
-            if (IsCollectionNode())
+            if (CurrentNode.IsCollection())
                 AddModelCollectionItem(obj);
             else
                 SetModelProperty(obj);
-            if (!IsSimpleNode())
-                ParentObject = obj;
+            CurrentObj = obj;
         }
 
         // decides if current node has been visited
@@ -146,62 +135,50 @@ namespace EDIConverter.converter
             return VisitedChilds.FirstOrDefault(child => child == CurrentNode) != null;
         }
 
-        // decides if current node is a simple node
-        private bool IsSimpleNode()
-        {
-            return CurrentNode["childs"] == null;
-        }
-
         private bool ShouldSkipNode()
         {
-            return !FileParser.HasProperty(CurrentNode["value"].ToString());
-        }
-
-        // decides if current node is a collection node
-        private bool IsCollectionNode()
-        {
-            return CurrentNode["collectionType"] != null;
+            return !FileParser.HasProperty(CurrentNode.value);
         }
 
         // fetches the collection count corresponding to current node's value, by looking at the input file
         private int FetchCollectionCount()
         {
-            return FileParser.FetchCollectionCount(CurrentNode["value"].ToString());
+            return FileParser.FetchCollectionCount(CurrentNode.value);
         }
 
         // fetches the input object corresponding to current node's value, by looking at the input file
         private string FetchPropertyValue()
         {
-            return FileParser.FetchValue(CurrentNode["value"].ToString());
+            return FileParser.FetchValue(CurrentNode.value);
         }
 
         // creates an instance of the collection class corresponding to current node
         private object CreateCollectionInstance()
         {
-            return ReflectionHandler.CreateCollectionInstance(CurrentNode["collectionType"].ToString(), CurrentNode["class"].ToString());
+            return ReflectionHandler.CreateCollectionInstance(CurrentNode.collectionType, CurrentNode.className);
         }
 
         // creates an instance of class corresponding to current node
         private object CreatePropertyInstance()
         {
-            return ReflectionHandler.CreateInstance(CurrentNode["class"].ToString());
+            return ReflectionHandler.CreateInstance(CurrentNode.className);
         }
 
         private void SetModelCollection(object value)
         {
-            ReflectionHandler.SetProperty(ParentObject, CurrentNode["collection"].ToString(), value);
+            ReflectionHandler.SetProperty(CurrentNode.parentObj, CurrentNode.collection, value);
         }
 
         // sets model's property with given value
         private void SetModelProperty(object value)
         {
-            ReflectionHandler.SetProperty(ParentObject, CurrentNode["property"].ToString(), value);
+            ReflectionHandler.SetProperty(CurrentNode.parentObj, CurrentNode.property, value);
         }
 
         // adds a model's collection item with given value
         private void AddModelCollectionItem(object value)
         {
-            ReflectionHandler.AddCollectionItem(ParentObject, CurrentNode["collection"].ToString(), value);
+            ReflectionHandler.AddCollectionItem(CurrentNode.parentObj, CurrentNode.collection, value);
         }
     }
 }

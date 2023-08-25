@@ -55,13 +55,14 @@ namespace EDIConverter.parser
             XElement foundElement = null;
             int depth = 0;
             int maxDepth = pathElements.Count;
+            XDocument xdoc = doc;
             while (depth < maxDepth)
             {
                 string currentPathElement = pathElements.Pop();
-                IEnumerable<XElement> children = doc.Descendants(currentPathElement);
+                IEnumerable<XElement> children = xdoc.Descendants(currentPathElement);
                 foundElement = children.FirstOrDefault();
                 if (foundElement != null && pathElements.Count > 0)
-                    doc = new XDocument(foundElement);
+                    xdoc = new XDocument(foundElement);
                 depth++;
             }
             return foundElement;

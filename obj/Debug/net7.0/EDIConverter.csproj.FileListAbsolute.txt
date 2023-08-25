@@ -3,7 +3,10 @@ D:\Giwrgos\programming\c#\EDIConverter\bin\Debug\net7.0\EDIConverter.deps.json
 D:\Giwrgos\programming\c#\EDIConverter\bin\Debug\net7.0\EDIConverter.runtimeconfig.json
 D:\Giwrgos\programming\c#\EDIConverter\bin\Debug\net7.0\EDIConverter.dll
 D:\Giwrgos\programming\c#\EDIConverter\bin\Debug\net7.0\EDIConverter.pdb
+D:\Giwrgos\programming\c#\EDIConverter\bin\Debug\net7.0\Microsoft.VisualStudio.TestPlatform.TestFramework.dll
 D:\Giwrgos\programming\c#\EDIConverter\bin\Debug\net7.0\Newtonsoft.Json.dll
+D:\Giwrgos\programming\c#\EDIConverter\bin\Debug\net7.0\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.dll
+D:\Giwrgos\programming\c#\EDIConverter\bin\Debug\net7.0\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.xml
 D:\Giwrgos\programming\c#\EDIConverter\obj\Debug\net7.0\EDIConverter.csproj.AssemblyReference.cache
 D:\Giwrgos\programming\c#\EDIConverter\obj\Debug\net7.0\EDIConverter.GeneratedMSBuildEditorConfig.editorconfig
 D:\Giwrgos\programming\c#\EDIConverter\obj\Debug\net7.0\EDIConverter.AssemblyInfoInputs.cache
@@ -15,6 +18,3 @@ D:\Giwrgos\programming\c#\EDIConverter\obj\Debug\net7.0\refint\EDIConverter.dll
 D:\Giwrgos\programming\c#\EDIConverter\obj\Debug\net7.0\EDIConverter.pdb
 D:\Giwrgos\programming\c#\EDIConverter\obj\Debug\net7.0\EDIConverter.genruntimeconfig.cache
 D:\Giwrgos\programming\c#\EDIConverter\obj\Debug\net7.0\ref\EDIConverter.dll
-D:\Giwrgos\programming\c#\EDIConverter\bin\Debug\net7.0\Microsoft.VisualStudio.TestPlatform.TestFramework.dll
-D:\Giwrgos\programming\c#\EDIConverter\bin\Debug\net7.0\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.dll
-D:\Giwrgos\programming\c#\EDIConverter\bin\Debug\net7.0\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.xml

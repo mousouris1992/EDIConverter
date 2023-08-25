@@ -5,6 +5,8 @@ VisualStudioVersion = 17.7.34018.315
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EDIConverter", "EDIConverter.csproj", "{7A930672-1E45-4F31-986B-84D54A28A7F2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EDIConverterTest", "..\EDIConverterTest\EDIConverterTest.csproj", "{29DD72D0-9FEA-46B2-8DFA-6B08F593602C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{7A930672-1E45-4F31-986B-84D54A28A7F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7A930672-1E45-4F31-986B-84D54A28A7F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7A930672-1E45-4F31-986B-84D54A28A7F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{29DD72D0-9FEA-46B2-8DFA-6B08F593602C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{29DD72D0-9FEA-46B2-8DFA-6B08F593602C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{29DD72D0-9FEA-46B2-8DFA-6B08F593602C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{29DD72D0-9FEA-46B2-8DFA-6B08F593602C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

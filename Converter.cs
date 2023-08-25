@@ -16,12 +16,15 @@ namespace EDIConverter
         
         private Stack<CollectionInfo> collections = new Stack<CollectionInfo>();
 
+        private HashSet<JToken> visitedChilds = new HashSet<JToken>();
+
         private JToken? currentNode;
 
         private object? parentObject;
 
         private string? inputContent;
 
+        // converts to Model given a configuration and input file
         public Model ToModel(String configFile, String inputContent)
         {
             Model model = new Model();
@@ -31,6 +34,7 @@ namespace EDIConverter
             return model;
         }
 
+        // initializes converter's state
         private void InitializeState(JObject config, string inputContent, Model model)
         {
             this.inputContent = inputContent;
@@ -42,12 +46,14 @@ namespace EDIConverter
             // initialize stacks
             childs = new Stack<JToken>(childsList);
             collections.Clear();
+            visitedChilds.Clear();
 
             // initialize objects 
             currentNode = null;
             parentObject = model;
         }
 
+        // traverses configuration nodes
         private void TraverseNodes()
         {
             while (childs.Count > 0)
@@ -55,17 +61,19 @@ namespace EDIConverter
                 currentNode = childs.Peek();
                 if (IsCollectionNode())
                 {
-                    bool skip = HandleCollectionNode();
+                    bool skip = HandleCollectionInfo();
                     if (skip)
                         continue;
                 }
-                HandleNodeProperty();
+                HandleNode();
                 if (!IsCollectionNode())
                     childs.Pop();
                 PushChildNodes();
+                visitedChilds.Add(currentNode);
             }
         }
       
+        // pushes current node's childs into the childs stack
         private void PushChildNodes()
         {
             List<JToken> currentNodeChilds = currentNode["childs"] != null ? currentNode["childs"].ToList() : new List<JToken>();
@@ -74,10 +82,11 @@ namespace EDIConverter
                 childs.Push(child);
         }
 
-        private bool HandleCollectionNode()
+        // handles current node as a collection node.
+        private bool HandleCollectionInfo()
         {
             bool skip = false;
-            if (IsCollectionNodeVisited())
+            if (IsNodeVisited())
             {
                 CollectionInfo collectionInfo = collections.Peek();
                 collectionInfo.index++;
@@ -85,6 +94,7 @@ namespace EDIConverter
                 {
                     childs.Pop();
                     collections.Pop();
+                    visitedChilds.Remove(currentNode);
                     skip = true;
                 }
                 else
@@ -92,12 +102,11 @@ namespace EDIConverter
             }
             else
             {
-                object collection = InitializeCollection();
+                object collection = CreateCollection();
                 SetProperty(collection);
                 collections.Push(new CollectionInfo()
                 {
                     parentObject = parentObject,
-                    node = currentNode,
                     collection = collection,
                     count = FetchCollectionCount()
                 });
@@ -105,36 +114,44 @@ namespace EDIConverter
             return skip;
         }
 
+        // handles current node's property. Current node is either a simple or a complex node.
+        // In case of simple node, the property is fetched from the input file, and set to the model.
+        // In case of a complex node, the property is first initialized and then set to the model.
         //TODO refactor
-        private void HandleNodeProperty()
+        private void HandleNode()
         {
-            object property;
+            object obj;
             if (IsSimpleNode())
-                property = FetchProperty();
+                obj = FetchObject();
             else
-                property = InitializeProperty();
+                obj = CreateInstance();
             if (IsCollectionNode())
-                SetCollectionItem(property);
+                SetCollectionItem(obj);
             else
-                SetProperty(property);
+                SetProperty(obj);
             if (!IsSimpleNode())
-                parentObject = property;
-        }
-        private bool IsCollectionNodeVisited()
-        {
-            return collections.FirstOrDefault(c => c.node == currentNode) != null;
+                parentObject = obj;
         }
 
+        // decides if current node has been visited
+        private bool IsNodeVisited()
+        {
+            return visitedChilds.FirstOrDefault(child => child == currentNode) != null;
+        }
+
+        // decides if current node is a simple node
         private bool IsSimpleNode()
         {
             return currentNode["childs"] == null;
         }
 
+        // decides if current node is a collection node
         private bool IsCollectionNode()
         {
             return currentNode["collectionType"] != null;
         }
 
+        // fetches the collection count corresponding to current node's value, by looking at the input file.
         private int FetchCollectionCount()
         {
             var list = currentNode["value"].ToString().Split('.').ToList();
@@ -148,7 +165,8 @@ namespace EDIConverter
             return 0;
         }
 
-        private string FetchProperty()
+        // fetches the input object corresponding to current node's value, by looking at the input file
+        private string FetchObject()
         {
             string path = currentNode["value"].ToString();
             XDocument doc = XDocument.Parse(inputContent);
@@ -168,26 +186,22 @@ namespace EDIConverter
             return foundElement?.Value;
         }
 
-        private object InitializeCollection()
+        // creates an instance of current node's collectionType
+        private object CreateCollection()
         {
             Type collectionType = FindType(currentNode["collectionType"].ToString());
             Type[] typeArgs = { FindType(currentNode["class"].ToString()) };
             return Activator.CreateInstance(collectionType.MakeGenericType(typeArgs));
         }
 
-        private object InitializeProperty()
+        // creates an instance of current node's class
+        private object CreateInstance()
         {
             string className = currentNode["class"].ToString();
             return Activator.CreateInstance(FindType(className));
         }
 
-        private Type FindType(string clazz)
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-            Type type = assembly.GetTypes().FirstOrDefault(t => t.Name == clazz);
-            return type != null ? type : Type.GetType(SupportedSystemType.Of(clazz));
-        }
-
+        // sets the model property corresponding to current node, with given value
         private void SetProperty(object value)
         {
             string property = currentNode["property"].ToString();
@@ -195,12 +209,21 @@ namespace EDIConverter
             propertyInfo.SetValue(parentObject, Convert.ChangeType(value, propertyInfo.PropertyType));
         }
 
+        // sets the model collection item corresponding to current node, with given value
         private void SetCollectionItem(object value)
         {
             string property = currentNode["property"].ToString();
             PropertyInfo propertyInfo = parentObject.GetType().GetProperty(property);
             object collection = propertyInfo.GetValue(parentObject, null);
             collection.GetType().GetMethod("Add").Invoke(collection, new[] { value });
+        }
+
+        // tries to find a type by given class name
+        private Type FindType(string clazz)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            Type type = assembly.GetTypes().FirstOrDefault(t => t.Name == clazz);
+            return type != null ? type : Type.GetType(SupportedSystemType.FullyQualifiedNameOf(clazz));
         }
     }
 }

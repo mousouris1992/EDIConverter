@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace EDIConverter
 {
+    // holds supported system types and their fully qualified class names
     internal class SupportedSystemType
     {
         private static readonly Tuple<string, string> STRING = Tuple.Create("String", "System.String");
         private static readonly Tuple<string, string> LIST = Tuple.Create("List", "System.Collections.Generic.List`1");
-
         private static Dictionary<string, string> Map = InitMap();
 
         private static Dictionary<string, string> InitMap()
@@ -21,7 +21,8 @@ namespace EDIConverter
             return d;
         }
 
-        public static string Of(string type)
+        // returns the fully qualified name of given type
+        public static string FullyQualifiedNameOf(string type)
         {
             string name = Map[type];
             if(name == null)

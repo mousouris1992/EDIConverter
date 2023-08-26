@@ -6,10 +6,20 @@ using System.Threading.Tasks;
 
 namespace EDIConverter.parser
 {
+    /// <summary>
+    /// Factory pattern for FileParser implementations
+    /// </summary>
     class FileParserFactory
     {
         private const string XML = "xml";
         private FileParserFactory() { }
+
+        /// <summary>
+        /// Creates an instance of FileParser based on given fileType
+        /// </summary>
+        /// <param name="fileType"></param>
+        /// <returns>An instance of FileParser</returns>
+        /// <exception cref="ArgumentException"></exception>
         public static FileParser Create(string fileType)
         {
             switch (fileType)

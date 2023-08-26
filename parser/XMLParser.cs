@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,61 +9,100 @@ using System.Xml.Linq;
 
 namespace EDIConverter.parser
 {
-    // XML implementation of FileParser
+    /// <summary>
+    ///  XML implmentation of FileParser
+    /// </summary>
     public class XMLParser : FileParser
     {
-        private XDocument? doc;
+        private XDocument? XDoc;
+
+        private XDocument? CurrentElement;
 
         public void Parse(string content)
         {
-            doc = XDocument.Parse(content);
-        }
-
-        public string FetchValue(string property)
-        {
-            ValidateParsedDocument();
-            return FetchElement(property)?.Value;
+            XDoc = XDocument.Parse(content);
+            CurrentElement = new XDocument(XDoc);
         }
 
         public string FetchValue(string property, int index)
         {
             ValidateParsedDocument();
-            throw new NotImplementedException();
+            return FetchElement(property, index)?.Value;
         }
-
-        public int FetchCollectionCount(string property)
-        {
-            ValidateParsedDocument();
-            var list = property.Split('.').ToList();
-            XElement parentCollection = doc.Descendants(list[list.Count - 2])?.FirstOrDefault();
-            if (parentCollection != null)
-            {
-                var childElemets = parentCollection.Elements(list[list.Count - 1]);
-                return childElemets.Count();
-            }
-            return 0;
-        }
-
+        
         public bool HasProperty(string property)
         {
             ValidateParsedDocument();
             return FetchElement(property) != null;
         }
 
-        private XElement FetchElement(string property)
+        public int FetchCollectionCount(string property)
         {
-            Stack<string> pathElements = new Stack<string>(property.Split('.').Reverse());
+            ValidateParsedDocument();
+            int i = 0;
+            while(true)
+            {
+                if (FetchElement(property, i) != null)
+                    i++;
+                else
+                    break;
+            }
+            return i;
+        }
+        public void SetContext(string property, int index = 0)
+        {
+            if (property == null)
+                CurrentElement = new XDocument(XDoc);
+            else
+                CurrentElement = new XDocument(FetchElement(property, index));
+        }
+
+        public void SetContext(object property)
+        {
+            if(property == null)
+                CurrentElement = new XDocument(XDoc);
+            else
+                CurrentElement = new XDocument((XDocument)property);
+        }
+
+        public object GetContext()
+        {
+            return CurrentElement;
+        }
+
+        private XElement FetchElement(string property, int index = 0)
+        {
+            List<string> pathElementsList = property.Split('.').ToList();
+            string propertyName = pathElementsList.Last();
+            pathElementsList.Reverse();
+            Stack<string> pathElements = new Stack<string>(pathElementsList);
             XElement foundElement = null;
             int depth = 0;
             int maxDepth = pathElements.Count;
-            XDocument xdoc = doc;
+            XDocument tempDoc = CurrentElement;
             while (depth < maxDepth)
             {
                 string currentPathElement = pathElements.Pop();
-                IEnumerable<XElement> children = xdoc.Descendants(currentPathElement);
+                IEnumerable<XElement> children = tempDoc.Descendants(currentPathElement);
                 foundElement = children.FirstOrDefault();
+                if (depth + 1 == maxDepth)
+                {
+                    int i = 0;
+                    foreach (XElement child in children)
+                    {
+                        if (child.Name == propertyName)
+                        {
+                            if (i == index)
+                                return child ;
+                            i++;
+                        }
+                    }
+                    if(i >= index)
+                        foundElement = null;
+                }
+
                 if (foundElement != null && pathElements.Count > 0)
-                    xdoc = new XDocument(foundElement);
+                    tempDoc = new XDocument(foundElement);
                 depth++;
             }
             return foundElement;
@@ -70,7 +110,7 @@ namespace EDIConverter.parser
 
         private void ValidateParsedDocument()
         {
-            if (doc == null)
+            if (XDoc == null)
                 throw new NullReferenceException("parse the document first!");
         }
     }

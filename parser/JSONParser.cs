@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace EDIConverter.parser
 {
-    internal class JSONParser : FileParser
+    /// <summary>
+    ///  JSON implementation of FileParser
+    /// </summary>
+    public class JSONParser : FileParser
     {
         public int FetchCollectionCount(string property)
         {

@@ -11,7 +11,7 @@ namespace EDIConverter.converter
     /// <summary>
     /// A Tree Node implementation, that additionally holds configuration data.
     /// </summary>
-    class ConfigNode
+    public class ConfigNode
     {
         private class CollectionData
         {
@@ -37,33 +37,32 @@ namespace EDIConverter.converter
         /// </summary>
         /// <param name="config"></param>
         /// <param name="parent"></param>
-        /// <param name="ModelParentObject"></param>
-        public ConfigNode(JToken config, ConfigNode parent = null, object ModelParentObject = null)
+        /// <param name="ModelContext"></param>
+        public ConfigNode(JToken config, ConfigNode parent = null, object modelContext = null)
         {
-            this.Parent = parent;
-            this.ModelContext = ModelParentObject;
+            Parent = parent;
+            ModelContext = modelContext;
             ProcessConfiguration(config);
         }
 
         private void ProcessConfiguration(JToken config)
         {
-            this.ClassName = config["class"]?.ToString();
-            this.Property = config["property"]?.ToString();
-            this.Value = config["value"]?.ToString();
-            this.collectionData.CollectionType = config["collectionType"]?.ToString();
-            this.collectionData.Collection = config["collection"]?.ToString();
-            AddChilds(config);
+            ClassName = config["class"]?.ToString();
+            Property = config["property"]?.ToString();
+            Value = config["value"]?.ToString();
+            collectionData.CollectionType = config["collectionType"]?.ToString();
+            collectionData.Collection = config["collection"]?.ToString();
+            ProcessChilds(config);
         }
 
-        private void AddChilds(JToken config)
+        private void ProcessChilds(JToken config)
         {
             if (config["childs"] != null)
             {
                 List<JToken> childConfigs = ((JArray)config["childs"]).ToList();
                 childConfigs.Reverse();
                 foreach (JToken childConfig in childConfigs)
-                    // recursively create child nodes
-                    // TODO stack traversal maybe?
+                    // TODO stack traversal maybe instead of recursion
                     Childs.Add(new ConfigNode(childConfig, this));
             }
         }

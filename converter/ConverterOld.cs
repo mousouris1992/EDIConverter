@@ -16,7 +16,7 @@ namespace EDIConverter.converter
     /// <summary>
     /// Converts to a Model object, given a configuration and an input
     /// </summary>
-    public class Converter
+    public class ConverterOld
     {
         private Stack<ConfigNode> Childs = new Stack<ConfigNode>();
 
@@ -62,7 +62,7 @@ namespace EDIConverter.converter
         {
             while (Childs.Count > 0)
             {
-                InitVisit();
+                BeginVisit();
                 if (Skip())
                     continue;
                 if (CurrentNode.IsCollection())
@@ -72,7 +72,7 @@ namespace EDIConverter.converter
             }
         }
 
-        private void InitVisit()
+        private void BeginVisit()
         {
             CurrentNode = Childs.Peek();
             SetParentContext();

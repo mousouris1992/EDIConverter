@@ -11,6 +11,8 @@ namespace EDIConverter.parser
 {
     /// <summary>
     ///  XML implmentation of FileParser
+    ///  TODO: consider converting every input file to JSON,
+    ///  and implement only a JSON parser if possible.
     /// </summary>
     public class XMLParser : FileParser
     {

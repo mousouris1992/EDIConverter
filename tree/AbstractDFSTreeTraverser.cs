@@ -22,6 +22,7 @@ namespace EDIConverter.tree
             Childs = new Stack<T>(childs);
             while(Childs.Count > 0)
             {
+                Previous = Current;
                 Current = Peek();
                 BeginVisit();
                 if (Skip())
@@ -35,7 +36,6 @@ namespace EDIConverter.tree
                     Pop();
                 foreach (T Child in GetChilds())
                     Push(Child);
-                Previous = Current;
             }
         }
         public virtual void BeginVisit() { }

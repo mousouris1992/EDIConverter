@@ -9,6 +9,7 @@ namespace EDIConverter.parser
     /// <summary>
     ///  JSON implementation of FileParser
     /// </summary>
+    //TODO: Implement this
     public class JSONParser : FileParser
     {
         public int FetchCollectionCount(string property)

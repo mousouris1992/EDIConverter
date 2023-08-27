@@ -7,14 +7,13 @@ using System.Threading.Tasks;
 
 namespace EDIConverter.util
 {
-
     public class TypeResolver
     {
         class SupportedSystemType
         {
             private static readonly Tuple<string, string> STRING = Tuple.Create("String", "System.String");
             private static readonly Tuple<string, string> LIST = Tuple.Create("List", "System.Collections.Generic.List`1");
-            private static Dictionary<string, string> Map = InitMap();
+            private static Dictionary<string, string> TypeNames = InitMap();
 
             private static Dictionary<string, string> InitMap()
             {
@@ -27,9 +26,9 @@ namespace EDIConverter.util
             // returns the fully qualified name of given type
             public static string FullyQualifiedNameOf(string type)
             {
-                string name = Map[type];
+                string name = TypeNames[type];
                 if (name == null)
-                    throw new ArgumentException(string.Format("could not map type: {0}", type));
+                    throw new ArgumentException(string.Format("could not find name for type: {0}", type));
                 return name;
             }
         }

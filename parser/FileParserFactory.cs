@@ -12,6 +12,7 @@ namespace EDIConverter.parser
     class FileParserFactory
     {
         private const string XML = "xml";
+        private const string JSON = "json";
         private FileParserFactory() { }
 
         /// <summary>
@@ -26,6 +27,8 @@ namespace EDIConverter.parser
             {
                 case XML:
                     return new XMLParser();
+                case JSON:
+                    return new JSONParser();
             }
             throw new ArgumentException(string.Format("could not map to a FileParser for fileType {0}", fileType));
         }

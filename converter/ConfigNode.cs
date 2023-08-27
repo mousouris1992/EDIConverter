@@ -75,7 +75,7 @@ namespace EDIConverter.converter
         public object GetParserContext()
         {
             object obj = ParserContext.GetValueOrDefault(collectionData.Index);
-            if (obj == null && IsCollection() && collectionData.Index > 0)
+            if (obj == null && IsCollection())
                 obj = ParserContext.GetValueOrDefault(0);
             return obj;
         }

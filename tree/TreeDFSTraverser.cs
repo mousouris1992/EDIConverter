@@ -11,7 +11,7 @@ namespace EDIConverter.tree
     /// and basic operations
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public abstract class AbstractDFSTreeTraverser<T>
+    public abstract class TreeDFSTraverser<T>
     {
         private Stack<T> Childs = new Stack<T>();     
         protected T Current { get; private set; }  

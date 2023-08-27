@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace EDIConverter.converter
 {
-    public class ModelConverter : AbstractDFSTreeTraverser<ConfigNode>
+    public class ModelConverter : TreeDFSTraverser<ConfigNode>
     {
         private JObject Config;
         private Model? Model;

@@ -26,7 +26,7 @@ namespace EDIConverter.parser
             switch (fileType)
             {
                 case XML:
-                    return new XMLParser();
+                    return new JSONParser();
                 case JSON:
                     return new JSONParser();
             }

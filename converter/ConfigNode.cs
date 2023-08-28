@@ -80,6 +80,26 @@ namespace EDIConverter.converter
             return obj;
         }
 
+        public string ResolveFullPath()
+        {
+            List<string> values = new List<string>{};
+            if (IsCollection())
+                values.Add(Value + "[" + (GetIndex() - 1) + "]");
+            else
+                values.Add(Value);
+            ConfigNode parent = Parent;
+            while (parent != null)
+            {
+                if(parent.IsCollection())
+                    values.Add(parent.Value + "[" + (parent.GetIndex() - 1) + "]");
+                else
+                    values.Add(parent.Value);
+                parent = parent.Parent;
+            }
+            values.Reverse();
+            return values.Count > 1 ? String.Join(".", values) : values[0];
+        }
+
         public void Visit()
         {
             collectionData.Index++;

@@ -45,14 +45,9 @@ namespace EDIConverter.converter
             return childs;
         }
 
-        public override void BeginVisit()
-        {
-            SetParentContext();
-        }
-
         public override bool Skip()
         {
-            bool skip = !Parser.HasProperty(Current.Value) || (!Current.CanVisit() && Current.IsCollection());
+            bool skip = !Parser.HasProperty(Current.ResolveFullPath()) || (!Current.CanVisit() && Current.IsCollection());
             if (skip)
                 Current.ResetIndex();
             return skip;
@@ -77,7 +72,6 @@ namespace EDIConverter.converter
 
         private void HandleNodeProperty()
         {
-            SetCurrentContext();
             object obj;
             if (Current.IsFinal())
                 obj = FetchPropertyValue();
@@ -111,25 +105,14 @@ namespace EDIConverter.converter
             return childs;
         }
 
-        private void SetParentContext()
-        {
-            Parser.SetContext(Current.GetParserContext());
-        }
-
-        private void SetCurrentContext()
-        {
-            if (Current.GetParserContext() == null || Current.IsCollection())
-                Parser.SetContext(Current.Value, Current.GetIndex());
-        }
-
         private int FetchCollectionCount()
         {
-            return Parser.FetchCollectionCount(Current.Value);
+            return Parser.FetchCollectionCount(Current.ResolveFullPath());
         }
 
         private string FetchPropertyValue()
         {
-            return Parser.FetchValue(Current.Value);
+            return Parser.FetchValue(Current.ResolveFullPath());
         }
 
         private void CreateModelCollectionInstance()

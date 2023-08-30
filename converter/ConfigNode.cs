@@ -15,8 +15,8 @@ namespace EDIConverter.converter
     {
         private class CollectionData
         {
-            public string CollectionType { get; set; }
-            public string Collection { get; set; }
+            public string? CollectionType { get; set; }
+            public string? Collection { get; set; }
             public int Index { get; set; } = 0;
             public int Count { get; set; } = 1;
         }
@@ -29,15 +29,9 @@ namespace EDIConverter.converter
 
         private CollectionData collectionData = new CollectionData();
 
-        private Dictionary<int, object> ParserContext = new Dictionary<int, object>();
-
-        /// <summary>
-        /// Constructs a ConfigNode instance from a JToken configuration,
-        /// a ConfigNode parent and a ModelParentObj can be also provided optionally.
-        /// </summary>
-        /// <param name="config"></param>
-        /// <param name="parent"></param>
-        /// <param name="ModelContext"></param>
+        /*
+         * 
+         */
         public ConfigNode(JToken config, ConfigNode parent = null, object modelContext = null)
         {
             Parent = parent;
@@ -67,39 +61,6 @@ namespace EDIConverter.converter
             }
         }
 
-        public void SetParserContext(object obj)
-        {
-            ParserContext[collectionData.Index] = obj;
-        }
-
-        public object GetParserContext()
-        {
-            object obj = ParserContext.GetValueOrDefault(collectionData.Index);
-            if (obj == null && IsCollection())
-                obj = ParserContext.GetValueOrDefault(0);
-            return obj;
-        }
-
-        public string ResolveFullPath()
-        {
-            List<string> values = new List<string>{};
-            if (IsCollection())
-                values.Add(Value + "[" + (GetIndex() - 1) + "]");
-            else
-                values.Add(Value);
-            ConfigNode parent = Parent;
-            while (parent != null)
-            {
-                if(parent.IsCollection())
-                    values.Add(parent.Value + "[" + (parent.GetIndex() - 1) + "]");
-                else
-                    values.Add(parent.Value);
-                parent = parent.Parent;
-            }
-            values.Reverse();
-            return values.Count > 1 ? String.Join(".", values) : values[0];
-        }
-
         public void Visit()
         {
             collectionData.Index++;
@@ -107,7 +68,7 @@ namespace EDIConverter.converter
 
         public bool IsVisited()
         {
-            return collectionData.Index > 0;
+            return collectionData.Index != 0;
         }
 
         public bool CanVisit()
@@ -140,21 +101,11 @@ namespace EDIConverter.converter
             return collectionData.Count;
         }
 
-        public void IncrementIndex()
-        {
-            collectionData.Index++;
-        }
-
         public void ResetIndex()
         {
             collectionData.Index = 0;
             foreach (ConfigNode child in Childs)
                 child.ResetIndex();
-        }
-
-        public void SetIndex(int index)
-        {
-            collectionData.Index = index;
         }
 
         public bool IsCollection()

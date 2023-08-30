@@ -4,105 +4,130 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using Formatting = Newtonsoft.Json.Formatting;
 
 namespace EDIConverter.parser
 {
-    /// <summary>
-    ///  JSON implementation of FileParser
-    /// </summary>
-    //TODO: Implement this
     public class JSONParser : FileParser
     {
         private JObject? Json;
+
+        private Dictionary<JToken, int> Indexes = new Dictionary<JToken, int>();
+
+        private Dictionary<string, int> Indexes2 = new Dictionary<string, int>();
 
         public void Parse(string content)
         {
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(content);
             Json = JObject.Parse(JsonConvert.SerializeXmlNode(doc));
-            //Json = JObject.Parse(content);
         }
 
         public int FetchCollectionCount(string property)
         {
             List<string> paths = new List<string>(property.Split("."));
             JToken token = Json;
-            for (int i = 0; i < paths.Count; i++)
+            int i = 0;
+            while (i < paths.Count)
             {
-                (string path, int idx) = Resolve(paths[i]);
-                if (idx != -1)
-                    token = token[path];
+                if (token.Type == JTokenType.Array)
+                {
+                    int idx = 0;
+                    Indexes.TryGetValue(token, out idx);
+                    token = ((JArray)token)[idx];
+                    continue;
+                }
+                else
+                    token = token[paths[i]];
+                i++;
             }
             return ((JArray)token).ToList().Count;
         }
 
-        public string FetchValue(string property, int index = 0)
+        public string FetchValue(string property)
         {
             List<string> paths = new List<string>(property.Split("."));
             JToken token = Json;
-            for (int i = 0; i < paths.Count; i++)
+            int i = 0;
+            Boolean isCollection = false;
+            while (i < paths.Count)
             {
-                (string path, int idx) = Resolve(paths[i]);
-                if (idx == -1)
-                    token = token[path];
+                if (token.Type == JTokenType.Array)
+                {
+                    int idx = 0;
+                    Indexes.TryGetValue(token, out idx);
+                    token = ((JArray)token)[idx];
+                    continue;
+                }
                 else
-                    token = ((JArray)token[path]).ToList()[idx];
+                    token = token[paths[i]];
+                i++;
             }
-            return token.ToString();
-        }
-
-        public object GetContext()
-        {
-            return null;
+            if (token.Type == JTokenType.Array)
+            {
+                int idx = 0;
+                Indexes.TryGetValue(token, out idx);
+                return ((JArray)token)[idx].ToString();
+            }
+            return token.ToString();           
         }
 
         public bool HasProperty(string property)
         {
             List<string> paths = new List<string>(property.Split("."));
             JToken token = Json;
-            for (int i = 0; i < paths.Count; i++)
+            int i = 0;
+            while (i < paths.Count - 1)
             {
-                (string path, int idx) = Resolve(paths[i]);
-                try
+                if (token.Type == JTokenType.Array)
                 {
-                    if (idx == -1)
-                        token = token[path];
-                    else
-                        token = ((JArray)token[path]).ToList()[idx];
+                    int idx = 0;
+                    Indexes.TryGetValue(token, out idx);
+                    token = ((JArray)token)[idx];
+                    continue;
                 }
-                catch(Exception e)
-                {
-                    return false;
-                }
-                
+                else
+                    token = token[paths[i]];
+                i++;
             }
-            return true;
+            if (token.Type == JTokenType.Array)
+            {
+                int idx = 0;
+                Indexes.TryGetValue(token, out idx);
+                JArray array = (JArray)token;
+                return array.Count > idx;
+            }
+            return token[paths.Last()] != null;
         }
 
-        public void SetContext(string property, int index = 0)
+        public void SetIndex(string property, int index = 0)
         {
-        }
-
-        public void SetContext(object obj)
-        {
-        }
-
-        private (string, int) Resolve(string path)
-        {
-            int start;
-            if ((start = path.IndexOf("[")) == -1)
-                return (path, -1);
-            int end = path.IndexOf("]");
-            string cleanProperty;
-            if ((start + 1) - (end - 1) == 0)
-                return (path.Substring(0, start), Int32.Parse(path.ToCharArray()[start + 1].ToString()));
-            int index = Int32.Parse(path.Substring(start + 1, end - 1));
-            cleanProperty = path.Substring(0, start - 1);
-            return (cleanProperty, index);
+            List<string> paths = new List<string>(property.Split("."));
+            JToken token = Json;
+            int i = 0;
+            while(i < paths.Count)
+            {
+                if (token.Type == JTokenType.Array)
+                {
+                    int idx = 0;
+                    Indexes.TryGetValue(token, out idx);
+                    token = ((JArray)token)[idx];
+                    continue;
+                }
+                else
+                    token = token[paths[i]];
+                i++;
+            }
+            if (token.Type == JTokenType.Array)
+            {
+                Indexes[token] = index;
+                Indexes2[property] = index;
+            }
         }
     }
 }

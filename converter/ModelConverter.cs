@@ -17,43 +17,47 @@ namespace EDIConverter.converter
         private Model? Model;
         private object? ModelContext;
         private FileParser? Parser;
+
         public Model ToModel(string configuration, string input)
         {
-            InitializeState(configuration, input);
+            Initialize(configuration, input);
             Traverse(GetRootChilds());
             return Model;
         }
 
-        private void InitializeState(string configuration, string input)
+        private void Initialize(string configuration, string input)
         {
             Model = new Model();
-            Config = JObject.Parse(configuration);
             ModelContext = Model;
+            Config = JObject.Parse(configuration);
             Parser = FileParserFactory.Create(Config["fileType"].ToString());
             Parser.Parse(input);
         }
 
         private List<ConfigNode> GetRootChilds()
         {
-            // get configuration childs
             List<JToken> childsList = ((JArray)Config["childs"]).ToList();
             childsList.Reverse();
-            // initialize Childs
             List<ConfigNode> childs = new List<ConfigNode>();
             foreach (JToken child in childsList)
                 childs.Add(new ConfigNode(child, null, Model));
             return childs;
         }
 
-        public override bool Skip()
+        protected override bool Skip()
         {
-            bool skip = !Parser.HasProperty(Current.ResolveFullPath()) || (!Current.CanVisit() && Current.IsCollection());
-            if (skip)
+            bool skip = false;
+            if (!Parser.HasProperty(Current.Value))
+                skip = true;
+            if (Current.IsCollection() && !Current.CanVisit())
+            {
+                skip = true;
                 Current.ResetIndex();
+            }
             return skip;
         }
 
-        public override void HandleNode()
+        protected override void HandleNode()
         {
             if (Current.IsCollection())
                 HandleNodeCollection();
@@ -64,76 +68,41 @@ namespace EDIConverter.converter
         {
             if (!Current.IsVisited())
             {
-                Current.ResetIndex();
-                Current.SetCount(FetchCollectionCount());
-                CreateModelCollectionInstance();
+                Current.SetCount(Parser.FetchCollectionCount(Current.Value));
+                ReflectionHandler.SetCollectionProperty(Current.ModelContext, Current.GetCollection(), Current.GetCollectionType(), Current.ClassName);
             }
+            Parser.SetIndex(Current.Value, Current.GetIndex());
         }
 
         private void HandleNodeProperty()
         {
             object obj;
             if (Current.IsFinal())
-                obj = FetchPropertyValue();
+                obj = Parser.FetchValue(Current.Value);
             else
-                obj = CreatePropertyInstance();
+                obj = ReflectionHandler.CreateInstance(Current.ClassName);
             if (Current.IsCollection())
-                AddModelCollectionItem(obj);
+                ReflectionHandler.AddCollectionItem(Current.ModelContext, Current.GetCollection(), obj);
             else
-                SetModelProperty(obj);
+                ReflectionHandler.SetProperty(Current.ModelContext, Current.Property, obj);
             ModelContext = obj;
         }
 
-        public override void EndVisit()
+        protected override void EndVisit()
         {
             Current.Visit();
         }
 
-        public override bool ShouldPop()
+        protected override bool ShouldPop()
         {
             return !Current.IsCollection();
         }
 
-        public override List<ConfigNode> GetChilds()
+        protected override List<ConfigNode> GetChilds()
         {
-            List<ConfigNode> childs = Current.Childs;
-            foreach (ConfigNode child in childs)
-            {
+            foreach (ConfigNode child in Current.Childs)
                 child.ModelContext = ModelContext;
-                child.SetParserContext(Parser.GetContext());
-            }
-            return childs;
-        }
-
-        private int FetchCollectionCount()
-        {
-            return Parser.FetchCollectionCount(Current.ResolveFullPath());
-        }
-
-        private string FetchPropertyValue()
-        {
-            return Parser.FetchValue(Current.ResolveFullPath());
-        }
-
-        private void CreateModelCollectionInstance()
-        {
-            object collection = ReflectionHandler.CreateCollectionInstance(Current.GetCollectionType(), Current.ClassName);
-            ReflectionHandler.SetProperty(Current.ModelContext, Current.GetCollection(), collection);
-        }
-
-        private object CreatePropertyInstance()
-        {
-            return ReflectionHandler.CreateInstance(Current.ClassName);
-        }
-
-        private void SetModelProperty(object value)
-        {
-            ReflectionHandler.SetProperty(Current.ModelContext, Current.Property, value);
-        }
-
-        private void AddModelCollectionItem(object value)
-        {
-            ReflectionHandler.AddCollectionItem(Current.ModelContext, Current.GetCollection(), value);
+            return Current.Childs;
         }
     }
 }

@@ -38,14 +38,14 @@ namespace EDIConverter.tree
                     Push(Child);
             }
         }
-        public virtual void BeginVisit() { }
-        public virtual bool Skip() { return false; }
-        public abstract void HandleNode();
-        public virtual void EndVisit() { }
-        public virtual bool ShouldPop() { return true; }
-        public abstract List<T> GetChilds();
-        public T Peek() { return Childs.Peek(); }
-        public void Pop() { Childs.Pop(); }
-        public void Push(T child) { Childs.Push(child); }
+        protected virtual void BeginVisit() { }
+        protected virtual bool Skip() { return false; }
+        protected abstract void HandleNode();
+        protected virtual void EndVisit() { }
+        protected virtual bool ShouldPop() { return true; }
+        protected abstract List<T> GetChilds();
+        protected T Peek() { return Childs.Peek(); }
+        protected void Pop() { Childs.Pop(); }
+        protected void Push(T child) { Childs.Push(child); }
     }
 }
